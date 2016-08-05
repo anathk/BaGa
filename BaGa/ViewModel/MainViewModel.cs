@@ -37,6 +37,8 @@ namespace BaGa.ViewModel
 
         private string settingFilePath;
 
+        private string[] fileNames = {"setting.tian", "setting.dino", "setting.3gir"};
+
         public string SettingFilePath
         {
             get { return settingFilePath;}
@@ -54,8 +56,8 @@ namespace BaGa.ViewModel
         private List<IntPtr> validKeyList;
 
         private BackgroundWorker worker;
+        private Boolean running;
 
-        private Boolean runningFlag;
 
 
         public MainViewModel()
@@ -76,9 +78,8 @@ namespace BaGa.ViewModel
             StartCommand = new RelayCommand(StartKeySpam, CanStartExecute);
             LoadSettingCommand = new RelayCommand(LoadSetting, CanLoadSettingExecute);
             StopCommand = new RelayCommand(StopKeySpam, CanStopExecute);
-            runningFlag = true;
-
-
+            running = false;
+            StartCommand.RaiseCanExecuteChanged();
         }
 
         private bool CanStopExecute()
@@ -88,12 +89,14 @@ namespace BaGa.ViewModel
 
         private void StopKeySpam()
         {
-            runningFlag = false;
+            running = false;
+            StartCommand.RaiseCanExecuteChanged();
+            worker.CancelAsync();
         }
 
         private bool CanStartExecute()
         {
-            return !string.IsNullOrEmpty(SettingFilePath);
+            return !string.IsNullOrEmpty(SettingFilePath) && !running;
         }
 
         private bool CanLoadSettingExecute()
@@ -103,11 +106,25 @@ namespace BaGa.ViewModel
 
         private void LoadSetting()
         {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            openFileDialog.Filter = "Tian Files (*.tian)|*.tian|Dino Files (*.dino)|*.dino|3girl Files (*.3girl)|*.3girl|All Files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
+            //Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
+            //openFileDialog.Filter = "Tian Files (*.tian)|*.tian|Dino Files (*.dino)|*.dino|3girl Files (*.3girl)|*.3girl|All Files (*.*)|*.*";
+            //if (openFileDialog.ShowDialog() == true)
+            //{
+            //    SettingFilePath = openFileDialog.FileName;
+            //}
+            //var dir = System.IO.Directory.GetCurrentDirectory();
+            //var ext = Path.GetExtension(SettingFilePath);
+            foreach (string fileName in fileNames)
             {
-                SettingFilePath = openFileDialog.FileName;
+                if (File.Exists(fileName))
+                {
+                    SettingFilePath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), fileName);
+                }
+            }
+
+            if (string.IsNullOrEmpty(SettingFilePath))
+            {
+                MessageBox.Show("Invalid setting file!");
             }
             StreamReader settingFile = new StreamReader(SettingFilePath);
             string line = "";
@@ -126,40 +143,14 @@ namespace BaGa.ViewModel
 
         private void StartKeySpam()
         {
-            runningFlag = !runningFlag;
-            //worker = new BackgroundWorker();
-            ////worker.WorkerReportsProgress = true;
-            //worker.WorkerSupportsCancellation = true;
-            //worker.DoWork += keySpamTask;
-            //worker.RunWorkerAsync();          
-            processList = Process.GetProcessesByName(ProcessName);
-            if (processList.Length > 0)
-            {
-                while (runningFlag)
-                {
-                    foreach (Process P in processList)
-                    {
-                        IntPtr edit = P.MainWindowHandle;
-                        foreach (IntPtr validKey in validKeyList)
-                        {
+            worker = new BackgroundWorker();
+            //worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += keySpamTask;
+            worker.RunWorkerAsync();
+            running = true;
+            StartCommand.RaiseCanExecuteChanged();
 
-                            PostMessage(edit, WM_KEYDOWN, validKey, IntPtr.Zero);
-                            PostMessage(edit, WM_KEYUP, validKey, IntPtr.Zero);
-                            System.Threading.Thread.Sleep(10);
-
-                        }
-                        ////PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.Control), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.Tab), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
-                        ////PostMessage(edit, WM_KEYUP, (IntPtr)(Keys.Control), IntPtr.Zero);
-                    }
-                }
-            }
         }
 
         private void keySpamTask(object sender, DoWorkEventArgs e)
@@ -169,7 +160,7 @@ namespace BaGa.ViewModel
             processList = Process.GetProcessesByName(ProcessName);
             if (processList.Length > 0 && bgworker.CancellationPending == false)
             {
-                while (true)
+                while (!bgworker.CancellationPending)
                 {
                     foreach (Process P in processList)
                     {
