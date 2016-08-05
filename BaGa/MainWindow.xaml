@@ -6,11 +6,12 @@
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:BaGa"
         mc:Ignorable="d"
-        Title="BaGa" Height="350" Width="525" DataContext="{Binding Source={StaticResource Locator}, Path=Main}">
+        Title="BaGa" Height="350" Width="525" DataContext="{Binding Source={StaticResource Locator}, Path=Main}"
+                     Loaded="Window_Loaded">
 
     <Controls:MetroWindow.InputBindings>
-        <KeyBinding Command="{Binding StartCommand}" Key="F10"></KeyBinding>
-        <KeyBinding Command="{Binding StopCommand}" Key="F12"></KeyBinding>
+        <KeyBinding Key="F10" Command="{Binding StartCommand}"  HotkeyManager.RegisterGlobalHotkey="True" />
+        <KeyBinding Key="F11" Command="{Binding StopCommand}" HotkeyManager.RegisterGlobalHotkey="True" />
     </Controls:MetroWindow.InputBindings>
 
     
@@ -44,7 +45,7 @@
         
         <!--Grid 0-->
         <Grid Grid.Row="0">
-            <Button x:Name="loadBtn" Content="Load Setting" Command="{Binding LoadSettingCommand}"></Button>
+            <Button x:Name="loadBtn" Content="Refresh" Command="{Binding LoadSettingCommand}"></Button>
         </Grid>
 
         <!--Grid 1-->

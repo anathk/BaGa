@@ -56,7 +56,7 @@ namespace BaGa.ViewModel
         private List<IntPtr> validKeyList;
 
         private BackgroundWorker worker;
-        private Boolean running;
+        private Boolean running = false;
 
 
 
@@ -78,8 +78,8 @@ namespace BaGa.ViewModel
             StartCommand = new RelayCommand(StartKeySpam, CanStartExecute);
             LoadSettingCommand = new RelayCommand(LoadSetting, CanLoadSettingExecute);
             StopCommand = new RelayCommand(StopKeySpam, CanStopExecute);
-            running = false;
             StartCommand.RaiseCanExecuteChanged();
+            LoadSetting();
         }
 
         private bool CanStopExecute()
@@ -101,7 +101,7 @@ namespace BaGa.ViewModel
 
         private bool CanLoadSettingExecute()
         {
-            return true;
+            return !running;
         }
 
         private void LoadSetting()
@@ -150,6 +150,7 @@ namespace BaGa.ViewModel
             worker.RunWorkerAsync();
             running = true;
             StartCommand.RaiseCanExecuteChanged();
+            LoadSettingCommand.RaiseCanExecuteChanged();
 
         }
 

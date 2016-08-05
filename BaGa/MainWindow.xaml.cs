@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using BaGa.ViewModel;
 using FontAwesome.WPF;
 using MahApps.Metro.Controls;
 
@@ -26,6 +27,11 @@ namespace BaGa
         {
             InitializeComponent();
             Icon = ImageAwesome.CreateImageSource(FontAwesomeIcon.Bolt, Brushes.White);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }
