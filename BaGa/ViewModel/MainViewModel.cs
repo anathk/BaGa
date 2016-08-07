@@ -73,6 +73,7 @@ namespace BaGa.ViewModel
             keyDictionary.Add("8", (IntPtr)(Keys.D8));
             keyDictionary.Add("9", (IntPtr)(Keys.D9));
             keyDictionary.Add("0", (IntPtr)(Keys.D0));
+            keyDictionary.Add("space", (IntPtr)(Keys.Space));
             keyDictionary.Add("-", (IntPtr)(Keys.OemMinus));
             keyDictionary.Add("=", (IntPtr)(Keys.Oemplus));
             StartCommand = new RelayCommand(StartKeySpam, CanStartExecute);
