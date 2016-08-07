@@ -36,6 +36,7 @@ namespace BaGa.ViewModel
         private Process[] processList;
 
         private string settingFilePath;
+        private int delayTime;
 
         private string[] fileNames = {"setting.tian", "setting.dino", "setting.3gir"};
 
@@ -54,6 +55,7 @@ namespace BaGa.ViewModel
 
         private Dictionary<string, IntPtr> keyDictionary;
         private List<IntPtr> validKeyList;
+        private List<int> delayTimeList;
 
         private BackgroundWorker worker;
         private Boolean running = false;
@@ -80,6 +82,8 @@ namespace BaGa.ViewModel
             LoadSettingCommand = new RelayCommand(LoadSetting, CanLoadSettingExecute);
             StopCommand = new RelayCommand(StopKeySpam, CanStopExecute);
             StartCommand.RaiseCanExecuteChanged();
+            delayTime = 1;
+            delayTimeList = new List<int>();
             LoadSetting();
         }
 
@@ -133,10 +137,23 @@ namespace BaGa.ViewModel
             validKeyList = new List<IntPtr>();
             ProcessName = settingFile.ReadLine();
             while ((line = settingFile.ReadLine()) != null)
-            {               
-                if (keyDictionary.ContainsKey(line))
+            {
+                string[] lineArr = line.Split(',');             
+                if (lineArr.Length > 0 && keyDictionary.ContainsKey(lineArr[0]))
                 {
-                    validKeyList.Add(keyDictionary[line]);
+                    validKeyList.Add(keyDictionary[lineArr[0]]);
+                }
+                if (lineArr.Length==2 && !string.IsNullOrEmpty(lineArr[1]))
+                {
+                    try
+                    {
+                        delayTime = int.Parse(lineArr[1].Trim());
+                    }
+                    catch (Exception e)
+                    {
+                        delayTime = 1;
+                    }
+                    delayTimeList.Add(delayTime);
                 }
             }
             StartCommand.RaiseCanExecuteChanged();
@@ -167,14 +184,21 @@ namespace BaGa.ViewModel
                     foreach (Process P in processList)
                     {
                         IntPtr edit = P.MainWindowHandle;
-                        foreach (IntPtr validKey in validKeyList)
+                        for (var i = 0; i < validKeyList.Count; i++)
                         {
-
-                            PostMessage(edit, WM_KEYDOWN, validKey, IntPtr.Zero);
-                            PostMessage(edit, WM_KEYUP, validKey, IntPtr.Zero);
-                            System.Threading.Thread.Sleep(10);
-
+                            PostMessage(edit, WM_KEYDOWN, validKeyList[i], IntPtr.Zero);
+                            PostMessage(edit, WM_KEYUP, validKeyList[i], IntPtr.Zero);
+                            System.Threading.Thread.Sleep(delayTimeList[i]);
                         }
+
+                        //foreach (IntPtr validKey in validKeyList)
+                        //{
+
+                        //    PostMessage(edit, WM_KEYDOWN, validKey, IntPtr.Zero);
+                        //    PostMessage(edit, WM_KEYUP, validKey, IntPtr.Zero);
+                        //    System.Threading.Thread.Sleep(10);
+
+                        //}
                         ////PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.Control), IntPtr.Zero);
                         //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
                         //PostMessage(edit, WM_KEYDOWN, (IntPtr)(Keys.A), IntPtr.Zero);
